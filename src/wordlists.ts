@@ -221,6 +221,9 @@ export const CONTEXT_SENSITIVE: string[] = [
   'cu',          // "recuar", contexto comum
   'pica',        // "pica-pau", "que pica" (que legal, regional)
   'caralho',     // "caralho!" como exclamacao de surpresa
+  // Movidos de abbreviation warnings (contexto inocente comum)
+  'gostosa', 'gostoso',  // "comida gostosa", "dia gostoso"
+  'delicia',              // "que delicia de bolo"
 ];
 
 /** Padrões que indicam fala dirigida a outra pessoa (2ª pessoa). */

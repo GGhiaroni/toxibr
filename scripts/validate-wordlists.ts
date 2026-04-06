@@ -37,12 +37,14 @@ function findCrossListDuplicates(
 function validateAbbreviations(): void {
   const abbrevKeys = Object.keys(ABBREVIATION_MAP);
 
-  // Check if abbreviation keys that are in HARD_BLOCKED also expand to something in HARD_BLOCKED
-  // (this is expected — just informational)
+  // Check if abbreviation expands to something in HARD_BLOCKED or CONTEXT_SENSITIVE
   const hardSet = new Set(HARD_BLOCKED.map(w => w.toLowerCase().trim()));
+  const contextSet = new Set(CONTEXT_SENSITIVE.map(w => w.toLowerCase().trim()));
   for (const [abbr, expansion] of Object.entries(ABBREVIATION_MAP)) {
-    if (!hardSet.has(abbr) && !hardSet.has(expansion)) {
-      console.warn(`  ⚠ Abreviação "${abbr}" → "${expansion}": nenhum dos dois está em HARD_BLOCKED`);
+    const inHard = hardSet.has(abbr) || hardSet.has(expansion);
+    const inContext = contextSet.has(abbr) || contextSet.has(expansion);
+    if (!inHard && !inContext) {
+      console.warn(`  ⚠ Abreviação "${abbr}" → "${expansion}": não está em HARD_BLOCKED nem CONTEXT_SENSITIVE`);
     }
   }
 

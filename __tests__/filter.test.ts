@@ -117,6 +117,14 @@ describe('pau/rola/cacete as context-sensitive', () => {
   it('blocks "voce e um caralho" (directed)', () => expect(filterContent('voce e um caralho').allowed).toBe(false));
 });
 
+describe('gostosa/gostoso/delicia as context-sensitive', () => {
+  it('allows "comida gostosa"', () => expect(filterContent('comida gostosa').allowed).toBe(true));
+  it('allows "dia gostoso"', () => expect(filterContent('dia gostoso').allowed).toBe(true));
+  it('allows "que delicia de bolo"', () => expect(filterContent('que delicia de bolo').allowed).toBe(true));
+  it('blocks "sua gostosa" (directed)', () => expect(filterContent('sua gostosa').allowed).toBe(false));
+  it('blocks "voce e uma delicia" (directed)', () => expect(filterContent('voce e uma delicia').allowed).toBe(false));
+});
+
 // ─── Phone number blocking ───────────────────────────────────────────────────
 
 describe('phone number blocking', () => {
