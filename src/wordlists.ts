@@ -116,6 +116,8 @@ export const HARD_BLOCKED: string[] = [
   'comer um cu', 'cu apertadinho', 'cu apertado',
   'arrombar ela', 'arrombei toda', 'arrombar toda',
   'pegar de 4', 'mulher de 4', 'colocar de 4',
+  'entro com a pica', 'mete a pica', 'meter a pica',
+  'com o cu', 'no cu', 'no teu cu', 'no seu cu',
   'pegar de quatro', 'mulher de quatro', 'colocar de quatro',
   'vou te mandar', 'te mandar uns videos',
   'pelada', 'peladinha', 'peladona',
@@ -354,6 +356,7 @@ export const CONTEXT_SENSITIVE_EMOJIS: string[] = [
 /** Padrões que indicam fala dirigida a outra pessoa (2ª pessoa). */
 export const DIRECTED_PATTERNS: RegExp[] = [
   /\bvoc[eê]s?\b/i,
+  /\bvc\b/i,
   /\btu\b/i,
   /\btua\b/i,
   /\bteu\b/i,
