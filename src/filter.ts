@@ -54,7 +54,10 @@ export function normalize(input: string): string {
   // 7. Leetspeak
   t = [...t].map(c => LEET[c] ?? c).join('');
 
-  // 8. Remove dots/dashes between single chars (p.u.t.a → puta)
+  // 8. Remove censoring characters (* #) between letters
+  t = t.replace(/[*#]+/g, '');
+
+  // 8b. Remove dots/dashes between single chars (p.u.t.a → puta)
   t = t.replace(/(\w)[.\-](?=\w[.\-])/g, '$1');
   t = t.replace(/(\w)[.\-](\w)/g, '$1$2');
 
@@ -180,6 +183,12 @@ export function createFilter(options: ToxiBROptions = {}) {
 
   return function filterContent(text: string): FilterResult {
     const normalized = normalize(text);
+
+    // Layer 0: Censorship bypass detection — words with * or # between letters
+    // Nobody uses these in normal conversation, only to censor profanity
+    if (/\w[*#]+\w/.test(text)) {
+      return { allowed: false, reason: 'hard_block', matched: 'censorship bypass' };
+    }
 
     // Layer 0a: Block links/URLs
     if (blockLinks && LINK_REGEX.test(text)) {
