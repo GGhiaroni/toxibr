@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd website && npm install && npm run build",
+  "buildCommand": "cd website && npm install && npx vite build",
   "outputDirectory": "website/dist",
   "installCommand": "echo skip",
   "framework": null
