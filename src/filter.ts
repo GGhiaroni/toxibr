@@ -15,7 +15,6 @@ import {
 import type {
   FilterResult,
   FilterStats,
-  BlockedResult,
   CensorResult,
   ToxiBROptions,
   FilterReason,
