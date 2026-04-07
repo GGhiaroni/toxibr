@@ -511,6 +511,7 @@ export const SELF_EXPRESSION_PATTERNS: RegExp[] = [
   /\bpau\s+de\b/i,
   /\bpau\s+pra\b/i,
   /\bcacete[\s,!.]+\b/i, // exclamacao isolada
+  /\bcaralho[\s,!.]+/i, // "caralho, tu ta de brincadeira"
   /\bque\s+pica\b/i, // "que legal" regional
   // Padroes inocentes para pinto/dp (v2.1)
   /\bpinto\s+de\b/i, // "pinto de ovo"
