@@ -12,7 +12,15 @@ import {
   OFFENSIVE_EMOJI_SEQUENCES,
   CONTEXT_SENSITIVE_EMOJIS,
 } from './wordlists';
-import type { FilterResult, CensorResult, ToxiBROptions, FilterReason, Severity } from './types';
+import type {
+  FilterResult,
+  FilterStats,
+  BlockedResult,
+  CensorResult,
+  ToxiBROptions,
+  FilterReason,
+  Severity,
+} from './types';
 
 // ─── Homoglyph map (Cyrillic + Latin Extended → ASCII) ───────────────────────
 
@@ -301,7 +309,14 @@ const LINK_REPLACE_REGEX =
 
 // ─── Create filter instance ──────────────────────────────────────────────────
 
-export function createFilter(options: ToxiBROptions = {}) {
+export interface ToxiBRFilter {
+  (text: string): FilterResult;
+  getStats: () => FilterStats;
+  resetStats: () => void;
+  exportStats: () => string;
+}
+
+export function createFilter(options: ToxiBROptions = {}): ToxiBRFilter {
   const {
     extraBlockedWords = [],
     extraContextWords = [],
@@ -310,7 +325,17 @@ export function createFilter(options: ToxiBROptions = {}) {
     blockDigitsOnly = true,
     blockEmojis = true,
     severity: severityConfig = {},
+    onBlock,
+    trackStats = false,
   } = options;
+
+  // ─── Stats state (only allocated when trackStats is true) ───────────────
+  let statsTotal = 0;
+  let statsAllowed = 0;
+  let statsBlocked = 0;
+  let statsByReason: Partial<Record<FilterReason, number>> = {};
+  let statsMatchedCounts: Record<string, number> = {};
+  let statsTotalTimeMs = 0;
 
   function getSeverity(reason: FilterReason): Severity {
     return severityConfig[reason] ?? 'block';
@@ -343,7 +368,61 @@ export function createFilter(options: ToxiBROptions = {}) {
     if (n.length >= 5) prefixWords.push(n);
   }
 
-  return function filterContent(text: string): FilterResult {
+  function filterContent(text: string): FilterResult {
+    const start = trackStats ? performance.now() : 0;
+    const result = _filter(text);
+
+    if (trackStats) {
+      const elapsed = performance.now() - start;
+      statsTotal++;
+      statsTotalTimeMs += elapsed;
+      if (result.allowed) {
+        statsAllowed++;
+      } else {
+        statsBlocked++;
+        statsByReason[result.reason] = (statsByReason[result.reason] ?? 0) + 1;
+        statsMatchedCounts[result.matched] = (statsMatchedCounts[result.matched] ?? 0) + 1;
+      }
+    }
+
+    if (!result.allowed && onBlock) {
+      onBlock(result);
+    }
+
+    return result;
+  }
+
+  filterContent.getStats = (): FilterStats => {
+    const topMatched = Object.entries(statsMatchedCounts)
+      .map(([word, count]) => ({ word, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      total: statsTotal,
+      allowed: statsAllowed,
+      blocked: statsBlocked,
+      byReason: { ...statsByReason },
+      topMatched,
+      avgTimeMs: statsTotal > 0 ? statsTotalTimeMs / statsTotal : 0,
+    };
+  };
+
+  filterContent.resetStats = (): void => {
+    statsTotal = 0;
+    statsAllowed = 0;
+    statsBlocked = 0;
+    statsByReason = {};
+    statsMatchedCounts = {};
+    statsTotalTimeMs = 0;
+  };
+
+  filterContent.exportStats = (): string => {
+    return JSON.stringify(filterContent.getStats());
+  };
+
+  return filterContent;
+
+  function _filter(text: string): FilterResult {
     const normalized = normalize(text);
 
     // Layer 0: Censorship bypass detection — words with * or # between letters
@@ -533,7 +612,7 @@ export function createFilter(options: ToxiBROptions = {}) {
     }
 
     return { allowed: true };
-  };
+  }
 }
 
 // ─── Censor function ────────────────────────────────────────────────────────

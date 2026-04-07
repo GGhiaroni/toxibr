@@ -880,3 +880,155 @@ describe('filterBatch', () => {
     expect(results[1].allowed).toBe(false);
   });
 });
+
+// ─── onBlock callback ─────────────────────────────────────────────────────────
+
+describe('onBlock callback', () => {
+  it('calls onBlock when a message is blocked', () => {
+    const blocked: Array<{ reason: string; matched: string }> = [];
+    const filter = createFilter({
+      onBlock: (result) => {
+        blocked.push({ reason: result.reason, matched: result.matched });
+      },
+    });
+
+    filter('bom dia');
+    expect(blocked).toHaveLength(0);
+
+    filter('seu arrombado');
+    expect(blocked).toHaveLength(1);
+    expect(blocked[0].reason).toBe('hard_block');
+  });
+
+  it('does not call onBlock for allowed messages', () => {
+    const spy = jest.fn();
+    const filter = createFilter({ onBlock: spy });
+
+    filter('bom dia');
+    filter('tudo bem');
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('works without onBlock (no error)', () => {
+    const filter = createFilter();
+    expect(() => filter('seu arrombado')).not.toThrow();
+  });
+});
+
+// ─── Stats tracking ───────────────────────────────────────────────────────────
+
+describe('Stats tracking', () => {
+  it('tracks stats when trackStats is true', () => {
+    const filter = createFilter({ trackStats: true });
+
+    filter('bom dia');
+    filter('tudo bem');
+    filter('seu idiota');
+
+    const stats = filter.getStats();
+    expect(stats.total).toBe(3);
+    expect(stats.allowed).toBe(2);
+    expect(stats.blocked).toBe(1);
+    expect(stats.byReason.directed_insult).toBe(1);
+    expect(stats.topMatched).toEqual(
+      expect.arrayContaining([expect.objectContaining({ word: 'idiota', count: 1 })])
+    );
+    expect(stats.avgTimeMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('does not track stats when trackStats is false (default)', () => {
+    const filter = createFilter();
+
+    filter('bom dia');
+    filter('fdp');
+
+    const stats = filter.getStats();
+    expect(stats.total).toBe(0);
+    expect(stats.allowed).toBe(0);
+    expect(stats.blocked).toBe(0);
+  });
+
+  it('resets stats correctly', () => {
+    const filter = createFilter({ trackStats: true });
+
+    filter('fdp');
+    filter('bom dia');
+    expect(filter.getStats().total).toBe(2);
+
+    filter.resetStats();
+    const stats = filter.getStats();
+    expect(stats.total).toBe(0);
+    expect(stats.allowed).toBe(0);
+    expect(stats.blocked).toBe(0);
+    expect(stats.byReason).toEqual({});
+    expect(stats.topMatched).toEqual([]);
+    expect(stats.avgTimeMs).toBe(0);
+  });
+
+  it('exports stats as JSON string', () => {
+    const filter = createFilter({ trackStats: true });
+
+    filter('bom dia');
+    filter('fdp');
+
+    const json = filter.exportStats();
+    const parsed = JSON.parse(json);
+    expect(parsed.total).toBe(2);
+    expect(parsed.allowed).toBe(1);
+    expect(parsed.blocked).toBe(1);
+  });
+
+  it('accumulates byReason counts', () => {
+    const filter = createFilter({ trackStats: true });
+
+    filter('fdp');
+    filter('puta');
+    filter('http://example.com');
+
+    const stats = filter.getStats();
+    expect(stats.byReason.hard_block).toBe(2);
+    expect(stats.byReason.link).toBe(1);
+  });
+
+  it('sorts topMatched by count descending', () => {
+    const filter = createFilter({ trackStats: true });
+
+    filter('fdp');
+    filter('fdp');
+    filter('fdp');
+    filter('puta');
+
+    const stats = filter.getStats();
+    expect(stats.topMatched[0].word).toBe('fdp');
+    expect(stats.topMatched[0].count).toBe(3);
+    expect(stats.topMatched[1].word).toBe('puta');
+    expect(stats.topMatched[1].count).toBe(1);
+  });
+
+  it('stats are local to each filter instance', () => {
+    const filter1 = createFilter({ trackStats: true });
+    const filter2 = createFilter({ trackStats: true });
+
+    filter1('fdp');
+    filter1('fdp');
+    filter2('puta');
+
+    expect(filter1.getStats().total).toBe(2);
+    expect(filter2.getStats().total).toBe(1);
+  });
+
+  it('works with onBlock and trackStats together', () => {
+    const blocked: string[] = [];
+    const filter = createFilter({
+      trackStats: true,
+      onBlock: (result) => blocked.push(result.matched),
+    });
+
+    filter('bom dia');
+    filter('fdp');
+    filter('puta');
+
+    expect(blocked).toEqual(['fdp', 'puta']);
+    expect(filter.getStats().blocked).toBe(2);
+  });
+});
