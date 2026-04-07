@@ -101,7 +101,7 @@ export default function Terminal({ result, onReportFP, onReportMissed }: Termina
   // What to show in Scan Results
   const displayResult = activeDetail
     ? {
-        allowed: false,
+        allowed: activeDetail.allowed,
         reason: activeDetail.reason,
         matched: activeDetail.matched,
         word: activeDetail.word,
@@ -336,8 +336,14 @@ export default function Terminal({ result, onReportFP, onReportMissed }: Termina
 
             <div className="term-spacer" />
 
-            <div className="term-line">
+            <div className="term-line term-line-wrap" style={{ gap: '0.35rem' }}>
               <span className="term-prompt">$</span>
+              {blockedCount > 0 &&
+                blockedWords.map((ws, i) => (
+                  <span key={i} className="term-blocked-tag">
+                    {ws.word}
+                  </span>
+                ))}
               <span className="cursor" />
             </div>
           </>
