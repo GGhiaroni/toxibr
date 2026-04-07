@@ -9,6 +9,8 @@ import Stats from './components/Stats';
 import HowToUse from './components/HowToUse';
 import Glossary from './components/Glossary';
 import SubmitWord from './components/SubmitWord';
+import FalsePositivePanel from './components/FalsePositivePanel';
+import type { FPEntry } from './components/FalsePositivePanel';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
 
@@ -27,6 +29,7 @@ function App() {
   const [page, setPage] = useState<Page>('home');
   const [result, setResult] = useState<ScanResult | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
+  const [fpEntries, setFpEntries] = useState<FPEntry[]>([]);
 
   const handleScan = useCallback((text: string) => {
     if (!text.trim()) {
@@ -51,6 +54,30 @@ function App() {
     setTimeout(() => setToastVisible(false), 1500);
   }, []);
 
+  const handleReportFP = useCallback(
+    (word: string, matched: string, reason: string, context: string) => {
+      setFpEntries((prev) => {
+        if (
+          prev.some((e) => e.word === word && e.matched === matched && e.type === 'false_positive')
+        )
+          return prev;
+        return [...prev, { word, matched, reason, context, type: 'false_positive' }];
+      });
+    },
+    []
+  );
+
+  const handleReportMissed = useCallback((word: string, context: string) => {
+    setFpEntries((prev) => {
+      if (prev.some((e) => e.word === word && e.type === 'not_caught')) return prev;
+      return [...prev, { word, matched: '', reason: '', context, type: 'not_caught' }];
+    });
+  }, []);
+
+  const handleRemoveFP = useCallback((index: number) => {
+    setFpEntries((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   return (
     <>
       <div className="glow-orb" />
@@ -61,7 +88,11 @@ function App() {
           <Hero onCopy={showToast} />
           <section className="playground-section">
             <div className="playground-container">
-              <Terminal result={result} />
+              <Terminal
+                result={result}
+                onReportFP={handleReportFP}
+                onReportMissed={handleReportMissed}
+              />
               <Scanner onScan={handleScan} onReset={() => setResult(null)} />
             </div>
           </section>
@@ -76,6 +107,11 @@ function App() {
 
       <Footer />
       <Toast visible={toastVisible} />
+      <FalsePositivePanel
+        entries={fpEntries}
+        onRemove={handleRemoveFP}
+        onClear={() => setFpEntries([])}
+      />
     </>
   );
 }

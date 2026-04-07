@@ -5,6 +5,8 @@ import './Terminal.css';
 
 interface TerminalProps {
   result: ScanResult | null;
+  onReportFP?: (word: string, matched: string, reason: string, context: string) => void;
+  onReportMissed?: (word: string, context: string) => void;
 }
 
 interface WordScan {
@@ -24,7 +26,7 @@ const reasonLabels: Record<string, string> = {
   offensive_emoji: 'OFFENSIVE_EMOJI',
 };
 
-export default function Terminal({ result }: TerminalProps) {
+export default function Terminal({ result, onReportFP, onReportMissed }: TerminalProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   // Reset selection when result changes
@@ -197,7 +199,13 @@ export default function Terminal({ result }: TerminalProps) {
               {wordScans.map((ws, i) => (
                 <span key={i}>
                   {ws.allowed ? (
-                    <span className="term-accent">{ws.word}</span>
+                    <span
+                      className={`term-word-clean ${selectedIndex === i ? 'selected' : ''}`}
+                      onClick={() => setSelectedIndex(selectedIndex === i ? null : i)}
+                      title="Clique para reportar como nao capturado"
+                    >
+                      {ws.word}
+                    </span>
                   ) : (
                     <span
                       className={`term-word-blocked ${selectedIndex === i ? 'active' : ''}`}
@@ -288,6 +296,35 @@ export default function Terminal({ result }: TerminalProps) {
                   <span className="term-muted">Time: </span>
                   <span className="term-white">{result.time.toFixed(2)}ms</span>
                 </div>
+
+                {activeDetail && !activeDetail.allowed && onReportFP && (
+                  <div className="term-line" style={{ marginTop: '0.4rem' }}>
+                    <button
+                      className="term-fp-btn"
+                      onClick={() =>
+                        onReportFP(
+                          activeDetail.word,
+                          activeDetail.matched || '',
+                          activeDetail.reason || '',
+                          result.input
+                        )
+                      }
+                    >
+                      Reportar falso positivo
+                    </button>
+                  </div>
+                )}
+
+                {activeDetail && activeDetail.allowed && onReportMissed && (
+                  <div className="term-line" style={{ marginTop: '0.4rem' }}>
+                    <button
+                      className="term-missed-btn"
+                      onClick={() => onReportMissed(activeDetail.word, result.input)}
+                    >
+                      Reportar: deveria bloquear
+                    </button>
+                  </div>
+                )}
               </>
             )}
 
