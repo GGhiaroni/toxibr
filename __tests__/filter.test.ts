@@ -1,4 +1,4 @@
-import { describe, it, expect, test } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 import {
   filterContent,
   normalize,
@@ -296,16 +296,14 @@ describe('pinto/dp as context-sensitive (v2.1)', () => {
   });
 });
 describe('Falsos positivos com pipoca e pika', () => {
-  
   it('deve permitir "pipoca" (falso positivo no fuzzy match)', () => {
-    expect(filterContent("Eu amo comer pipoca assistindo filme").allowed).toBe(true);
+    expect(filterContent('Eu amo comer pipoca assistindo filme').allowed).toBe(true);
   });
 
   it('deve bloquear "pika" (adicionado ao HARD_BLOCKED)', () => {
-    expect(filterContent("Aquele cara é um pika").allowed).toBe(false);
-    expect(filterContent("pika").allowed).toBe(false);
+    expect(filterContent('Aquele cara é um pika').allowed).toBe(false);
+    expect(filterContent('pika').allowed).toBe(false);
   });
-
 });
 
 // ─── Dot-separated bypass ───────────────────────────────────────────────────

@@ -624,9 +624,4 @@ export const SELF_EXPRESSION_PATTERNS: RegExp[] = [
 ];
 // ── Whitelist (Exceções para evitar falsos positivos) ────────────────────────
 // Palavras que NUNCA devem ser bloqueadas, mesmo que sejam parecidas com palavrões.
-export const WHITELIST: string[] = [
-  'pipoca',
-  'picar',
-  'picada',
-  'picante',
-];
+export const WHITELIST: string[] = ['pipoca', 'picar', 'picada', 'picante'];

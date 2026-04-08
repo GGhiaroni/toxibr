@@ -712,7 +712,8 @@ export function createFilter(options: ToxiBROptions = {}): ToxiBRFilter {
       const messageWords = new Set(normalized.split(/\s+/));
       for (const msgWord of messageWords) {
         const threshold = getFuzzyThreshold(msgWord.length);
-        if (threshold === 0 || FUZZY_ALLOWLIST.has(msgWord) || whitelistNormalized.has(msgWord)) continue;
+        if (threshold === 0 || FUZZY_ALLOWLIST.has(msgWord) || whitelistNormalized.has(msgWord))
+          continue;
         // Only check blocked words whose length is within threshold range
         for (let len = msgWord.length - threshold; len <= msgWord.length + threshold; len++) {
           const candidates = fuzzyByLength.get(len);
@@ -732,7 +733,8 @@ export function createFilter(options: ToxiBROptions = {}): ToxiBRFilter {
       const messageWords = normalized.split(/\s+/);
       for (const msgWord of messageWords) {
         // Word must be at least 4 chars and cover at least 70% of a blocked word
-        if (msgWord.length < 4 || FUZZY_ALLOWLIST.has(msgWord) || whitelistNormalized.has(msgWord)) continue;
+        if (msgWord.length < 4 || FUZZY_ALLOWLIST.has(msgWord) || whitelistNormalized.has(msgWord))
+          continue;
         for (const blocked of prefixWords) {
           if (blocked.length < msgWord.length) continue;
           if (blocked.startsWith(msgWord) && msgWord.length >= blocked.length * 0.55) {
@@ -933,4 +935,3 @@ export const filterBatch = createFilterBatch();
 // ─── Default filter (zero config) ────────────────────────────────────────────
 
 export const filterContent = createFilter();
-
