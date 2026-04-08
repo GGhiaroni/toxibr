@@ -2045,3 +2045,556 @@ describe('[Issue #27] - Stalking, perseguição e ameaças pessoais', () => {
     });
   });
 });
+
+// ─── Times de futebol brasileiro — falsos positivos ──────────────────────────
+
+describe('times de futebol brasileiro — falsos positivos (issue #62)', () => {
+  // Apelidos/mascotes que ativavam fuzzy match indevido
+  it('permite "preta" (Ponte Preta / adjetivo comum — dist 1 de "pheta")', () => {
+    expect(filterContent('Ponte Preta').allowed).toBe(true);
+    expect(filterContent('camisa preta do time').allowed).toBe(true);
+    expect(filterContent('preta').allowed).toBe(true);
+  });
+
+  it('permite "porco" (apelido/mascote do Palmeiras — dist 1 de "porno")', () => {
+    expect(filterContent('vai Palmeiras porco').allowed).toBe(true);
+    expect(filterContent('o porco ta na area').allowed).toBe(true);
+    expect(filterContent('porco').allowed).toBe(true);
+  });
+
+  it('permite "periquito" (mascote do Palmeiras/Goiás — dist 1 de "periquita"/"priquito")', () => {
+    expect(filterContent('o periquito do Palmeiras e o mascote').allowed).toBe(true);
+    expect(filterContent('periquito').allowed).toBe(true);
+  });
+
+  it('permite "periquitos" (plural do mascote — dist 2 de "periquita")', () => {
+    expect(filterContent('os periquitos estao na arquibancada').allowed).toBe(true);
+    expect(filterContent('periquitos').allowed).toBe(true);
+  });
+
+  // Nomes oficiais e apelidos comuns — devem passar normalmente
+  it('permite nomes oficiais dos times da Serie A', () => {
+    const times = [
+      'Flamengo', 'Palmeiras', 'Corinthians', 'Sao Paulo', 'Gremio',
+      'Internacional', 'Atletico MG', 'Cruzeiro', 'Fluminense', 'Botafogo',
+      'Vasco', 'Santos', 'Bahia', 'Fortaleza', 'Athletico PR',
+      'Bragantino', 'Cuiaba', 'Vitoria', 'Chapecoense', 'Mirassol',
+    ];
+    for (const time of times) {
+      expect(filterContent(`o jogo do ${time} foi incrivel`).allowed).toBe(true);
+    }
+  });
+
+  it('permite apelidos carinhosos comuns', () => {
+    const apelidos = [
+      'Mengao', 'Timao', 'Vascao', 'Fogao', 'Fluzao', 'Peixao',
+      'Coringao', 'Papao', 'Dogao',
+    ];
+    for (const apelido of apelidos) {
+      expect(filterContent(`torcida do ${apelido} e a melhor`).allowed).toBe(true);
+    }
+  });
+
+  it('permite apelidos de mascotes/animais usados no futebol', () => {
+    const mascotes = [
+      'Galo',     // Atletico-MG
+      'Raposa',   // Cruzeiro
+      'Urubu',    // Flamengo
+      'Coelho',   // America-MG
+      'Leao',     // Sport / Fortaleza / varios
+      'Tigre',    // Criciuma / Vila Nova
+      'Tubarao',  // Londrina / Sampaio Correa
+      'Baleia',   // Santos
+      'Galinha',  // apelido de rival (Atletico-MG / Corinthians)
+      'Porcada',  // torcida do Palmeiras
+      'Suino',    // Palmeiras
+      'Gambá',    // Corinthians
+      'Timbu',    // Nautico
+      'Pantera',  // Botafogo-SP / Democrata
+      'Dragao',   // Atletico-GO / Atletico-CE
+      'Coruja',   // Operario-PR / Tirol
+      'Gaviao',   // Manaus / Tombense
+      'Aguia',    // varios
+    ];
+    for (const mascote of mascotes) {
+      expect(filterContent(`${mascote} na area`).allowed).toBe(true);
+    }
+  });
+
+  it('permite apelidos de identidade/cor usados no futebol', () => {
+    const identidades = [
+      'Rubro-Negro', 'Tricolor', 'Alviverde', 'Alvinegro',
+      'Colorado', 'Verdao', 'Celeste', 'Cruzmaltino', 'Esmeraldino',
+    ];
+    for (const id of identidades) {
+      expect(filterContent(`${id} e o melhor`).allowed).toBe(true);
+    }
+  });
+
+  it('permite apelidos pejorativos ressignificados pelos proprios torcedores', () => {
+    const ressignificados = [
+      'Porco',    // Palmeiras
+      'Urubu',    // Flamengo
+      'Gambá',   // Corinthians
+      'Coelho',   // America-MG
+      'Timbu',    // Nautico
+    ];
+    for (const term of ressignificados) {
+      expect(filterContent(`${term} nao para de ganhar`).allowed).toBe(true);
+    }
+  });
+
+  it('permite apelidos e mascotes dos times da Serie A', () => {
+    // Palmeiras
+    expect(filterContent('Verdao e o apelido do Palmeiras').allowed).toBe(true);
+    expect(filterContent('Alviverde e o apelido do Palmeiras').allowed).toBe(true);
+    expect(filterContent('Academia e o apelido do Palmeiras').allowed).toBe(true);
+    expect(filterContent('Porcada e a torcida do Palmeiras').allowed).toBe(true);
+    expect(filterContent('Suino e o apelido do Palmeiras').allowed).toBe(true);
+    expect(filterContent('Chiqueiro e o apelido de rival do Palmeiras').allowed).toBe(true);
+    // Sao Paulo
+    expect(filterContent('Tricolor Paulista e o apelido do Sao Paulo').allowed).toBe(true);
+    expect(filterContent('Soberano e o apelido do Sao Paulo').allowed).toBe(true);
+    expect(filterContent('Santo Paulo e o mascote do Sao Paulo').allowed).toBe(true);
+    expect(filterContent('Bambi e o apelido do Sao Paulo').allowed).toBe(true);
+    expect(filterContent('Piu-Piu e o apelido de rival do Sao Paulo').allowed).toBe(true);
+    // Fluminense
+    expect(filterContent('Flu e o apelido do Fluminense').allowed).toBe(true);
+    expect(filterContent('Tricolor das Laranjeiras e o apelido do Fluminense').allowed).toBe(true);
+    expect(filterContent('Fluzao e o apelido do Fluminense').allowed).toBe(true);
+    expect(filterContent('Po de Arroz e o apelido do Fluminense').allowed).toBe(true);
+    expect(filterContent('Nense e o apelido do Fluminense').allowed).toBe(true);
+    expect(filterContent('Tricoflor e o apelido de rival do Fluminense').allowed).toBe(true);
+    expect(filterContent('Guerreiro e o mascote do Fluminense').allowed).toBe(true);
+    // Flamengo
+    expect(filterContent('Mengao e o apelido do Flamengo').allowed).toBe(true);
+    expect(filterContent('Mengo e o apelido do Flamengo').allowed).toBe(true);
+    expect(filterContent('Rubro-Negro e o apelido do Flamengo').allowed).toBe(true);
+    expect(filterContent('Nacao e a torcida do Flamengo').allowed).toBe(true);
+    expect(filterContent('Flavelado e o apelido de rival do Flamengo').allowed).toBe(true);
+    // Bahia
+    expect(filterContent('Esquadrao de Aco e o apelido do Bahia').allowed).toBe(true);
+    expect(filterContent('Tricolor de Aco e o apelido do Bahia').allowed).toBe(true);
+    expect(filterContent('Bahea e o apelido do Bahia').allowed).toBe(true);
+    // Athletico-PR
+    expect(filterContent('Furacao e o apelido do Athletico PR').allowed).toBe(true);
+    expect(filterContent('CAP e a sigla do Athletico PR').allowed).toBe(true);
+    expect(filterContent('Fura-Cao e o mascote do Athletico PR').allowed).toBe(true);
+    expect(filterContent('Poodle e o apelido de rival do Athletico PR').allowed).toBe(true);
+    // Coritiba
+    expect(filterContent('Coxa e o apelido do Coritiba').allowed).toBe(true);
+    expect(filterContent('Coxa-Branca e o apelido do Coritiba').allowed).toBe(true);
+    expect(filterContent('Vovo Coxa e o mascote do Coritiba').allowed).toBe(true);
+    expect(filterContent('Coxinha e o apelido de rival do Coritiba').allowed).toBe(true);
+    expect(filterContent('Broxa e o apelido de rival do Coritiba').allowed).toBe(true);
+    // Atletico-MG
+    expect(filterContent('Galo Forte e o apelido do Atletico MG').allowed).toBe(true);
+    expect(filterContent('Galo Doido e o mascote do Atletico MG').allowed).toBe(true);
+    expect(filterContent('Galinha e o apelido de rival do Atletico MG').allowed).toBe(true);
+    // Bragantino
+    expect(filterContent('Massa Bruta e o apelido do Bragantino').allowed).toBe(true);
+    expect(filterContent('Braga e o apelido do Bragantino').allowed).toBe(true);
+    expect(filterContent('Toro Loko e o mascote do Bragantino').allowed).toBe(true);
+    // Botafogo
+    expect(filterContent('Fogao e o apelido do Botafogo').allowed).toBe(true);
+    expect(filterContent('Glorioso e o apelido do Botafogo').allowed).toBe(true);
+    expect(filterContent('Manequinho e o mascote do Botafogo').allowed).toBe(true);
+    expect(filterContent('Biriba e o mascote do Botafogo').allowed).toBe(true);
+    expect(filterContent('Cachorrada e o apelido de rival do Botafogo').allowed).toBe(true);
+    // Gremio
+    expect(filterContent('Imortal e o apelido do Gremio').allowed).toBe(true);
+    expect(filterContent('Tricolor Gaucho e o apelido do Gremio').allowed).toBe(true);
+    expect(filterContent('Tricolor dos Pampas e o apelido do Gremio').allowed).toBe(true);
+    expect(filterContent('Mosqueteiro e o mascote do Gremio').allowed).toBe(true);
+    // Vasco
+    expect(filterContent('Vascao e o apelido do Vasco').allowed).toBe(true);
+    expect(filterContent('Gigante da Colina e o apelido do Vasco').allowed).toBe(true);
+    expect(filterContent('Cruzmaltino e o apelido do Vasco').allowed).toBe(true);
+    expect(filterContent('Almirante e o mascote do Vasco').allowed).toBe(true);
+    expect(filterContent('Bacalhau e o apelido de rival do Vasco').allowed).toBe(true);
+    expect(filterContent('Vice da Gama e o apelido de rival do Vasco').allowed).toBe(true);
+    // Internacional
+    expect(filterContent('Inter e o apelido do Internacional').allowed).toBe(true);
+    expect(filterContent('Saci e o mascote do Internacional').allowed).toBe(true);
+    // Vitoria
+    expect(filterContent('Leao da Barra e o apelido do Vitoria').allowed).toBe(true);
+    // Santos
+    expect(filterContent('Peixe e o apelido do Santos').allowed).toBe(true);
+    expect(filterContent('Peixao e o apelido do Santos').allowed).toBe(true);
+    expect(filterContent('Alvinegro Praiano e o apelido do Santos').allowed).toBe(true);
+    expect(filterContent('Baleia e o mascote do Santos').allowed).toBe(true);
+    expect(filterContent('Sardinha e o apelido de rival do Santos').allowed).toBe(true);
+    expect(filterContent('Sereia e o apelido do Santos').allowed).toBe(true);
+    // Corinthians
+    expect(filterContent('Timao e o apelido do Corinthians').allowed).toBe(true);
+    expect(filterContent('Coringao e o apelido do Corinthians').allowed).toBe(true);
+    expect(filterContent('Bando de Loucos e o apelido do Corinthians').allowed).toBe(true);
+    expect(filterContent('Time do Povo e o apelido do Corinthians').allowed).toBe(true);
+    expect(filterContent('Todo Poderoso e o apelido do Corinthians').allowed).toBe(true);
+    expect(filterContent('Mosqueteiro e o mascote do Corinthians').allowed).toBe(true);
+    // Chapecoense
+    expect(filterContent('Chape e o apelido da Chapecoense').allowed).toBe(true);
+    expect(filterContent('Verdao do Oeste e o apelido da Chapecoense').allowed).toBe(true);
+    expect(filterContent('Indio Conda e o mascote da Chapecoense').allowed).toBe(true);
+    // Remo
+    expect(filterContent('Leao Azul e o apelido do Remo').allowed).toBe(true);
+    // Cruzeiro
+    expect(filterContent('Raposa e o apelido do Cruzeiro').allowed).toBe(true);
+    expect(filterContent('Cabuloso e o apelido do Cruzeiro').allowed).toBe(true);
+    expect(filterContent('Celeste e o apelido do Cruzeiro').allowed).toBe(true);
+    expect(filterContent('Maria e o apelido de rival do Cruzeiro').allowed).toBe(true);
+    // Mirassol
+    expect(filterContent('Leao da Alta Araraquarense e o apelido do Mirassol').allowed).toBe(true);
+  });
+
+  it('permite apelidos e mascotes dos times da Serie B', () => {
+    // Goias
+    expect(filterContent('Esmeraldino e o apelido do Goias').allowed).toBe(true);
+    // Avai
+    expect(filterContent('Leao da Ilha e o apelido do Avai').allowed).toBe(true);
+    // Operario-PR
+    expect(filterContent('Fantasma e o apelido do Operario PR').allowed).toBe(true);
+    // Botafogo-SP
+    expect(filterContent('Pantera e o apelido do Botafogo SP').allowed).toBe(true);
+    // Nautico
+    expect(filterContent('Timbu e o apelido do Nautico').allowed).toBe(true);
+    expect(filterContent('Barbie e o apelido de rival do Nautico').allowed).toBe(true);
+    // Ceara
+    expect(filterContent('Vozao e o apelido do Ceara').allowed).toBe(true);
+    expect(filterContent('Vovo e o apelido do Ceara').allowed).toBe(true);
+    expect(filterContent('Come-Ovo e o apelido de rival do Ceara').allowed).toBe(true);
+    // Vila Nova
+    expect(filterContent('Tigrao e o apelido do Vila Nova').allowed).toBe(true);
+    // Athletic Club
+    expect(filterContent('Esquadrao de Aco e o apelido do Athletic Club').allowed).toBe(true);
+    expect(filterContent('Guerreiro e o mascote do Athletic Club').allowed).toBe(true);
+    // Sport
+    expect(filterContent('Leao da Ilha e o apelido do Sport').allowed).toBe(true);
+    // Londrina
+    expect(filterContent('Tubarao e o apelido do Londrina').allowed).toBe(true);
+    // Sao Bernardo
+    expect(filterContent('Berno e o apelido do Sao Bernardo').allowed).toBe(true);
+    // Criciuma
+    expect(filterContent('Tigresa e o apelido do Criciuma').allowed).toBe(true);
+    // Fortaleza
+    expect(filterContent('Leao do Pici e o apelido do Fortaleza').allowed).toBe(true);
+    expect(filterContent('Tricolor de Aco e o apelido do Fortaleza').allowed).toBe(true);
+    // CRB
+    expect(filterContent('Galo de Campina e o apelido do CRB').allowed).toBe(true);
+    expect(filterContent('Regatas e o apelido do CRB').allowed).toBe(true);
+    // Novorizontino
+    expect(filterContent('Tigre do Vale e o apelido do Novorizontino').allowed).toBe(true);
+    // Cuiaba
+    expect(filterContent('Dourado e o apelido do Cuiaba').allowed).toBe(true);
+    expect(filterContent('Auriverde e o apelido do Cuiaba').allowed).toBe(true);
+    expect(filterContent('Peixe Dourado e o mascote do Cuiaba').allowed).toBe(true);
+    // Ponte Preta
+    expect(filterContent('Gorila e o mascote da Ponte Preta').allowed).toBe(true);
+    // America-MG
+    expect(filterContent('Coelho e o apelido do America MG').allowed).toBe(true);
+    expect(filterContent('Mecao e o apelido do America MG').allowed).toBe(true);
+    // Juventude
+    expect(filterContent('Papo e o apelido do Juventude').allowed).toBe(true);
+    expect(filterContent('Papada e o apelido do Juventude').allowed).toBe(true);
+    expect(filterContent('Ju e o apelido do Juventude').allowed).toBe(true);
+    expect(filterContent('Polentude e o apelido de rival do Juventude').allowed).toBe(true);
+    // Atletico-GO
+    expect(filterContent('Dragao e o apelido do Atletico GO').allowed).toBe(true);
+  });
+
+  it('permite nomes de times tradicionais das Series B/C', () => {
+    expect(filterContent('Sport subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Nautico subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Santa Cruz subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Guarani subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Ponte Preta subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Vitoria subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Remo subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Paysandu subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('ABC subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('CRB subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Vila Nova subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Londrina subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Operario subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Ituano subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Chapecoense subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Avai subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Criciuma subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Juventude subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Goias subiu para Serie A').allowed).toBe(true);
+    expect(filterContent('Coritiba subiu para Serie A').allowed).toBe(true);
+  });
+
+  it('permite apelidos e mascotes dos times da Serie C', () => {
+    // Ituano
+    expect(filterContent('Galo de Itu e o apelido').allowed).toBe(true);
+    // Maringa
+    expect(filterContent('Dogao e o apelido do Maringa').allowed).toBe(true);
+    // Brusque
+    expect(filterContent('Marreco e o mascote do Brusque').allowed).toBe(true);
+    // Floresta
+    expect(filterContent('Lobo da Vila e o apelido').allowed).toBe(true);
+    // Amazonas
+    expect(filterContent('Onca-Pintada e o mascote do Amazonas').allowed).toBe(true);
+    // Botafogo-PB
+    expect(filterContent('Belo e o apelido do Botafogo PB').allowed).toBe(true);
+    expect(filterContent('Xerife e o mascote').allowed).toBe(true);
+    // Paysandu
+    expect(filterContent('Papao da Curuzu e o apelido do Paysandu').allowed).toBe(true);
+    // Santa Cruz
+    expect(filterContent('Santinha e o apelido do Santa Cruz').allowed).toBe(true);
+    expect(filterContent('Coral e o apelido do Santa Cruz').allowed).toBe(true);
+    expect(filterContent('Cobra Coral e o mascote').allowed).toBe(true);
+    // Figueirense
+    expect(filterContent('Figueira e o apelido do Figueirense').allowed).toBe(true);
+    expect(filterContent('Furacao e o mascote do Figueirense').allowed).toBe(true);
+    // Guarani
+    expect(filterContent('Bugre e o apelido do Guarani').allowed).toBe(true);
+    // Maranhao
+    expect(filterContent('Macao e o apelido do Maranhao').allowed).toBe(true);
+    expect(filterContent('Bode Gregorio e o mascote').allowed).toBe(true);
+    // Ypiranga-RS
+    expect(filterContent('Canarinho e o apelido do Ypiranga').allowed).toBe(true);
+    // Ferrroviaria
+    expect(filterContent('Locomotiva e o apelido da Ferroviaria').allowed).toBe(true);
+    expect(filterContent('Maquinista e o mascote').allowed).toBe(true);
+    // Caxias
+    expect(filterContent('Grena do Povo e o apelido do Caxias').allowed).toBe(true);
+    // Barra-SC
+    expect(filterContent('Pescador e o mascote do Barra SC').allowed).toBe(true);
+    // Confianca
+    expect(filterContent('Dragao do Bairro Industrial e o apelido').allowed).toBe(true);
+    // Itabaiana
+    expect(filterContent('Cebolinha e o mascote do Itabaiana').allowed).toBe(true);
+    // Volta Redonda
+    expect(filterContent('Voltaco e o apelido do Volta Redonda').allowed).toBe(true);
+    expect(filterContent('Jaguatirica e o mascote').allowed).toBe(true);
+    // Anapois
+    expect(filterContent('Galo da Comarca e o apelido do Anapois').allowed).toBe(true);
+  });
+
+  it('permite apelidos e mascotes dos times da Serie D — Grupos 1 a 8', () => {
+    // Grupo 1
+    expect(filterContent('Gaviao do Norte e o apelido do Manaus').allowed).toBe(true);
+    expect(filterContent('Leao da Vila Municipal e o apelido').allowed).toBe(true);
+    expect(filterContent('Robo da Amazonia e o apelido do Manauara').allowed).toBe(true);
+    expect(filterContent('Mundao e o apelido do Sao Raimundo RR').allowed).toBe(true);
+    expect(filterContent('Leao Dourado e o apelido do GAS').allowed).toBe(true);
+    expect(filterContent('Auriverde e o apelido do Monte Roraima').allowed).toBe(true);
+    // Grupo 2
+    expect(filterContent('Locomotiva e o apelido do Porto Velho').allowed).toBe(true);
+    expect(filterContent('Tourao do Norte e o apelido do Araguaina').allowed).toBe(true);
+    expect(filterContent('Imperador e o apelido do Galvez').allowed).toBe(true);
+    expect(filterContent('Tricolor de Aco e o apelido').allowed).toBe(true);
+    expect(filterContent('Tourao e o apelido do Humaita').allowed).toBe(true);
+    // Grupo 3
+    expect(filterContent('Periquito e o apelido do Gama').allowed).toBe(true);
+    expect(filterContent('Verdao do Norte e o apelido do Luverdense').allowed).toBe(true);
+    expect(filterContent('Jacare e o apelido do Brasiliense').allowed).toBe(true);
+    expect(filterContent('Gigante da Vila e o apelido do Primavera MT').allowed).toBe(true);
+    expect(filterContent('Fantasma e o mascote do Primavera MT').allowed).toBe(true);
+    expect(filterContent('Pantera Avinhada e o apelido do Inhumas').allowed).toBe(true);
+    expect(filterContent('Camaleao e o apelido do Aparecidense').allowed).toBe(true);
+    // Grupo 4
+    expect(filterContent('Coruja e o apelido do Capital DF').allowed).toBe(true);
+    expect(filterContent('Azulao e o apelido do Goiatuba').allowed).toBe(true);
+    expect(filterContent('Chicote da Fronteira e o apelido do Operario VG').allowed).toBe(true);
+    expect(filterContent('Gato Preto e o apelido da Ceilandia').allowed).toBe(true);
+    expect(filterContent('Tigre da Vargas e o apelido do Mixto MT').allowed).toBe(true);
+    expect(filterContent('Colorado e o apelido do Uniao Rondonopolis').allowed).toBe(true);
+    // Grupo 5
+    expect(filterContent('Cavalo de Aco e o apelido do Imperatriz').allowed).toBe(true);
+    expect(filterContent('Aguia do Souza e o apelido da Tuna Luso').allowed).toBe(true);
+    expect(filterContent('Orca e o apelido do Oratorio').allowed).toBe(true);
+    expect(filterContent('Verdao do Norte e o apelido do Tocantinopolis').allowed).toBe(true);
+    // Grupo 6
+    expect(filterContent('Canario da Ilha e o apelido do IAPE').allowed).toBe(true);
+    expect(filterContent('Bicolor e o apelido do Maracana').allowed).toBe(true);
+    expect(filterContent('Papao do Norte e o apelido do Moto Club').allowed).toBe(true);
+    expect(filterContent('Bicho Papao e o mascote do Moto Club').allowed).toBe(true);
+    expect(filterContent('Tubarao do Litoral e o apelido do Parnahyba').allowed).toBe(true);
+    expect(filterContent('Bolivia Querida e o apelido do Sampaio Correa').allowed).toBe(true);
+    // Grupo 7
+    expect(filterContent('Enxuga Rato e o apelido do Piaui').allowed).toBe(true);
+    expect(filterContent('Tubarao da Barra e o apelido do Ferroviario').allowed).toBe(true);
+    expect(filterContent('Vaqueiro e o apelido do Fluminense PI').allowed).toBe(true);
+    expect(filterContent('Aguia da Precabura e o apelido do Atletico CE').allowed).toBe(true);
+    // Grupo 8
+    expect(filterContent('Orgulho de Bonito e o apelido do Maguary').allowed).toBe(true);
+    expect(filterContent('Mecao e o apelido do America RN').allowed).toBe(true);
+    expect(filterContent('Patativa do Agreste e o apelido do Central').allowed).toBe(true);
+    expect(filterContent('Dinossauro e o apelido do Sousa').allowed).toBe(true);
+    expect(filterContent('Elefante e o mascote do ABC').allowed).toBe(true);
+  });
+
+  it('permite apelidos e mascotes dos times da Serie D — Grupos 9 a 16', () => {
+    // Grupo 9
+    expect(filterContent('Galo da Borborema e o apelido do Treze').allowed).toBe(true);
+    expect(filterContent('Bode do Sertao e o apelido do Decisao').allowed).toBe(true);
+    expect(filterContent('Verdao e o apelido do Lagarto').allowed).toBe(true);
+    expect(filterContent('Diabo Rubro e o apelido do Sergipe').allowed).toBe(true);
+    expect(filterContent('Carcara e o apelido do Serra Branca').allowed).toBe(true);
+    expect(filterContent('Fenix e o apelido do Retro').allowed).toBe(true);
+    // Grupo 10
+    expect(filterContent('Azulao e o apelido do CSA').allowed).toBe(true);
+    expect(filterContent('Cancao de Fogo e o apelido do Juazeirense').allowed).toBe(true);
+    expect(filterContent('Fantasma das Alagoas e o apelido do ASA').allowed).toBe(true);
+    expect(filterContent('Leao do Sisal e o apelido do Jacuipense').allowed).toBe(true);
+    expect(filterContent('Tricolor Palmeirense e o apelido do CSE').allowed).toBe(true);
+    expect(filterContent('Carcara e o apelido do Atletico BA').allowed).toBe(true);
+    // Grupo 11
+    expect(filterContent('Verdao e o apelido do Uberlandia').allowed).toBe(true);
+    expect(filterContent('Leao do Sul e o apelido do CRAC').allowed).toBe(true);
+    // Grupo 12
+    expect(filterContent('Gaviao Carcara e o apelido do Tombense').allowed).toBe(true);
+    expect(filterContent('Capa Preta e o apelido do Rio Branco ES').allowed).toBe(true);
+    expect(filterContent('Merengue e o apelido do Real Noroeste').allowed).toBe(true);
+    // Grupo 13
+    expect(filterContent('Netuno e o mascote do Agua Santa').allowed).toBe(true);
+    expect(filterContent('Pousao e o apelido do Pouso Alegre').allowed).toBe(true);
+    expect(filterContent('Lusa e o apelido da Portuguesa').allowed).toBe(true);
+    expect(filterContent('Lusa Carioca e o apelido da Portuguesa RJ').allowed).toBe(true);
+    expect(filterContent('Ze Carioca e o mascote do Madureira').allowed).toBe(true);
+    expect(filterContent('Mecao e o apelido do America RJ').allowed).toBe(true);
+    // Grupo 14
+    expect(filterContent('Nho Quim e o mascote do XV de Piracicaba').allowed).toBe(true);
+    expect(filterContent('Caipira e o mascote').allowed).toBe(true);
+    expect(filterContent('Tsunami e o apelido do Marica').allowed).toBe(true);
+    expect(filterContent('Gaivota e o mascote do Marica').allowed).toBe(true);
+    expect(filterContent('Galinho da Serra e o apelido do Sampaio Correa RJ').allowed).toBe(true);
+    expect(filterContent('Galo Vermelho e o apelido do Velo Clube').allowed).toBe(true);
+    expect(filterContent('Norusca e o apelido do Noroeste').allowed).toBe(true);
+    expect(filterContent('Orgulho da Baixada e o apelido do Nova Iguacu').allowed).toBe(true);
+    // Grupo 15
+    expect(filterContent('Leao do Vale e o apelido do Cianorte').allowed).toBe(true);
+    expect(filterContent('JEC e o apelido do Joinville').allowed).toBe(true);
+    expect(filterContent('Serpente e o mascote do FC Cascavel').allowed).toBe(true);
+    expect(filterContent('Aguia do Sul e o apelido do Santa Catarina').allowed).toBe(true);
+    expect(filterContent('Zangao e o mascote do Sao Luiz').allowed).toBe(true);
+    // Grupo 16
+    expect(filterContent('Capivara e o mascote do Blumenau').allowed).toBe(true);
+    expect(filterContent('Xavante e o apelido do Brasil de Pelotas').allowed).toBe(true);
+    expect(filterContent('Marinheiro e o mascote do Marcilio Dias').allowed).toBe(true);
+    expect(filterContent('Aviao e o mascote do Sao Joseense').allowed).toBe(true);
+    expect(filterContent('Gralha Azul e o apelido do Azuriz').allowed).toBe(true);
+    expect(filterContent('Zequinha e o mascote do Sao Jose RS').allowed).toBe(true);
+  });
+
+  it('permite nomes de times da Serie D — Grupos 1 a 8', () => {
+    // Grupo 1
+    expect(filterContent('Manaus joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Nacional AM joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Manauara joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Sao Raimundo RR joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('GAS joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Monte Roraima joga pela Serie D').allowed).toBe(true);
+    // Grupo 2
+    expect(filterContent('Porto Velho joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Araguaina joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Guapore joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Galvez joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Independencia AC joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Humaita joga pela Serie D').allowed).toBe(true);
+    // Grupo 3
+    expect(filterContent('Gama joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Luverdense joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Brasiliense joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Primavera MT joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Inhumas joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Aparecidense joga pela Serie D').allowed).toBe(true);
+    // Grupo 4
+    expect(filterContent('Capital DF joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Goiatuba joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Operario VG joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Ceilandia joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Mixto MT joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Uniao Rondonopolis joga pela Serie D').allowed).toBe(true);
+    // Grupo 5
+    expect(filterContent('Trem joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Aguia de Maraba joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Imperatriz joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Tuna Luso joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Oratorio joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Tocantinopolis joga pela Serie D').allowed).toBe(true);
+    // Grupo 6
+    expect(filterContent('IAPE joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Maracana joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Moto Club joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Parnahyba joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Iguatu joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Sampaio Correa joga pela Serie D').allowed).toBe(true);
+    // Grupo 7
+    expect(filterContent('Piaui joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Ferroviario joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Fluminense PI joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Altos joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Atletico CE joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Tirol joga pela Serie D').allowed).toBe(true);
+    // Grupo 8
+    expect(filterContent('Maguary joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('America RN joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Central joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Laguna joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Sousa joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('ABC joga pela Serie D').allowed).toBe(true);
+  });
+
+  it('permite nomes de times da Serie D — Grupos 9 a 16', () => {
+    // Grupo 9
+    expect(filterContent('Treze joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Decisao joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Lagarto joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Sergipe joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Serra Branca joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Retro joga pela Serie D').allowed).toBe(true);
+    // Grupo 10
+    expect(filterContent('CSA joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Juazeirense joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('ASA joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Jacuipense joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('CSE joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Atletico BA joga pela Serie D').allowed).toBe(true);
+    // Grupo 11
+    expect(filterContent('Ivinhema joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Uberlandia joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Betim joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Operario MS joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Abecat joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('CRAC joga pela Serie D').allowed).toBe(true);
+    // Grupo 12
+    expect(filterContent('Porto BA joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Democrata GV joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Tombense joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Rio Branco ES joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Real Noroeste joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Vitoria ES joga pela Serie D').allowed).toBe(true);
+    // Grupo 13
+    expect(filterContent('Agua Santa joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Pouso Alegre joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Portuguesa joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Portuguesa RJ joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Madureira joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('America RJ joga pela Serie D').allowed).toBe(true);
+    // Grupo 14
+    expect(filterContent('XV de Piracicaba joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Marica joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Sampaio Correa RJ joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Velo Clube joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Noroeste joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Nova Iguacu joga pela Serie D').allowed).toBe(true);
+    // Grupo 15
+    expect(filterContent('Cianorte joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Joinville joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('FC Cascavel joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Santa Catarina joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Guarany de Bage joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Sao Luiz joga pela Serie D').allowed).toBe(true);
+    // Grupo 16
+    expect(filterContent('Blumenau joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Brasil de Pelotas joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Marcilio Dias joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Sao Joseense joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Azuriz joga pela Serie D').allowed).toBe(true);
+    expect(filterContent('Sao Jose RS joga pela Serie D').allowed).toBe(true);
+  });
+});

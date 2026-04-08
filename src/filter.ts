@@ -321,6 +321,21 @@ const FUZZY_ALLOWLIST = new Set([
   'nadia', // → vadia  (dist 1)
   'nunes', // → nudes  (dist 1)
   'porto', // → porno  (dist 1)
+  // Times de futebol brasileiro — falsos positivos de fuzzy/prefix match
+  'porco',      // Palmeiras (apelido/mascote) → dist 1 de "porno"
+  'periquito',  // Palmeiras/Goiás/Gama (mascote) → dist 1 de "periquita" e "priquito"
+  'periquitos', // plural do mascote → dist 2 de "periquita"
+  'preta',      // Ponte Preta / adjetivo comum → dist 1 de "pheta" (punheta abreviado)
+  'santinha',   // Santa Cruz (apelido) → dist 2 de "xaninha"
+  'macao',      // Maranhão (apelido = arara macaw) → dist 1 de "macaco" (slur racial)
+  'canarinho',  // Ypiranga-RS / Seleção Brasileira → dist 2 de "cabacinho"
+  'bicho',      // Bicho-Papão (mascote Moto Club) / palavra comum → prefix de "bichona"
+  'zequinha',   // São José-RS (mascote) → dist 2 de "neguinha"
+  'ypiranga',     // time/rio/bairro histórico BR → dist 2 de "piranha"
+  'bambi',        // apelido do São Paulo FC → dist 1 de "lambi"
+  'mosqueteiro',  // mascote Grêmio/Corinthians → dist 2 de "boqueteiro"
+  'glorioso',     // apelido do Botafogo → dist 1 de "gloriosa" (hard blocked)
+  'gloriosos',    // plural → dist 2 de "gloriosa"
 ]);
 
 // ─── PT-BR Stemmer (RSLP simplificado) ──────────────────────────────────────
@@ -432,6 +447,9 @@ const STEM_ALLOWLIST = new Set([
   'bat',
   // "tocada/tocar" — stem "toc"
   'toc',
+  // "glorioso" (apelido do Botafogo) — mesmo stem de "gloriosa" (hard blocked por misoginia)
+  // Nota: "gloriosa" continua bloqueada pelo hard_block (Layer 0), que precede o stem_match
+  'glori',
 ]);
 
 // Words explicitly whitelisted (never blocked, not even by fuzzy/prefix).
