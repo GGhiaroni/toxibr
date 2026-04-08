@@ -132,7 +132,7 @@ describe('hard-blocked — new BR actresses (v2)', () => {
 });
 
 // ─── Bypass attempts ─────────────────────────────────────────────────────────
-
+// ─── Validação Issue #42 (Acentos Invertidos e Especiais) ─────────────────
 describe('bypass prevention', () => {
   it('blocks leetspeak: 3stupr0', () => {
     expect(filterContent('3stupr0').allowed).toBe(false);
