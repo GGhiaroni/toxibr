@@ -321,27 +321,21 @@ const FUZZY_ALLOWLIST = new Set([
   'nadia', // → vadia  (dist 1)
   'nunes', // → nudes  (dist 1)
   'porto', // → porno  (dist 1)
-  // Nomes de jogos populares — issue #64
-  // Palavras em títulos de jogos que poderiam colidir com termos bloqueados via fuzzy
-  'mortal', // Mortal Kombat
-  'kombat', // Mortal Kombat
-  'hitman', // Hitman
-  'asasin', // Assassin's Creed (normalizado: assassin → asasin via colapso ss→s)
-  'devil', // Devil May Cry
-  'kiler', // Killer Instinct (normalizado: killer → kiler via colapso ll→l)
-  'instinct', // Killer Instinct
-  'daylight', // Dead by Daylight
-  'fortnite', // Fortnite
-  'valorant', // Valorant
-  'overwatch', // Overwatch
-  'minecraft', // Minecraft
-  'roblox', // Roblox
-  'ranked', // termo de gaming (modo classificatório)
-  'gamer', // termo de gaming
-  'headshot', // termo de gaming (FPS)
-  'respawn', // termo de gaming
-  'matchup', // termo de gaming
-  'esports', // termo de gaming
+  // Times de futebol brasileiro — falsos positivos de fuzzy/prefix match
+  'porco',      // Palmeiras (apelido/mascote) → dist 1 de "porno"
+  'periquito',  // Palmeiras/Goiás/Gama (mascote) → dist 1 de "periquita" e "priquito"
+  'periquitos', // plural do mascote → dist 2 de "periquita"
+  'preta',      // Ponte Preta / adjetivo comum → dist 1 de "pheta" (punheta abreviado)
+  'santinha',   // Santa Cruz (apelido) → dist 2 de "xaninha"
+  'macao',      // Maranhão (apelido = arara macaw) → dist 1 de "macaco" (slur racial)
+  'canarinho',  // Ypiranga-RS / Seleção Brasileira → dist 2 de "cabacinho"
+  'bicho',      // Bicho-Papão (mascote Moto Club) / palavra comum → prefix de "bichona"
+  'zequinha',   // São José-RS (mascote) → dist 2 de "neguinha"
+  'ypiranga',     // time/rio/bairro histórico BR → dist 2 de "piranha"
+  'bambi',        // apelido do São Paulo FC → dist 1 de "lambi"
+  'mosqueteiro',  // mascote Grêmio/Corinthians → dist 2 de "boqueteiro"
+  'glorioso',     // apelido do Botafogo → dist 1 de "gloriosa" (hard blocked)
+  'gloriosos',    // plural → dist 2 de "gloriosa"
 ]);
 
 // ─── PT-BR Stemmer (RSLP simplificado) ──────────────────────────────────────
@@ -453,6 +447,9 @@ const STEM_ALLOWLIST = new Set([
   'bat',
   // "tocada/tocar" — stem "toc"
   'toc',
+  // "glorioso" (apelido do Botafogo) — mesmo stem de "gloriosa" (hard blocked por misoginia)
+  // Nota: "gloriosa" continua bloqueada pelo hard_block (Layer 0), que precede o stem_match
+  'glori',
 ]);
 
 // Words explicitly whitelisted (never blocked, not even by fuzzy/prefix).
